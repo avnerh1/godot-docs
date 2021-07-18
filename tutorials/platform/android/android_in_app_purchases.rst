@@ -102,7 +102,19 @@ initiate the purchase flow for it.
 ::
 
     payment.purchase("my_iap_item")
+    
+Then, wait for the ``purchases_updated`` signal to handle the purchase result:
 
+
+::
+
+    func _on_purchases_updated(purchases):
+        for purchase in purchases:
+            if purchase.purchase_state==1: # 1 means "purchased"
+                if !purchase.is_acknowledged:                    
+                    #entitle_to_premium(purchase.sku) # unlock paid content, add coins, save token on server, etc.
+                    payment.acknowledgePurchase(purchase.purchase_token) 
+                    payment.consumePurchase(purchase.purchase_token) #for consumables - see more below
 
 
 Check if the user purchased an item
