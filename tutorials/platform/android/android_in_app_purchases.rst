@@ -102,7 +102,19 @@ initiate the purchase flow for it.
 ::
 
     payment.purchase("my_iap_item")
+    
+Then, wait for the ``purchases_updated`` signal to handle the purchase result:
 
+
+::
+
+    func _on_purchases_updated(purchases):
+        for purchase in purchases:
+            if purchase.purchase_state==1: # 1 means "purchased"
+                #entitle_to_premium(purchase.sku) # unlock paid content, add coins, save token on server, etc.
+                if !purchase.is_acknowledged:                                        
+                    payment.acknowledgePurchase(purchase.purchase_token) 
+                    payment.consumePurchase(purchase.purchase_token) #for consumables - see more below
 
 
 Check if the user purchased an item
@@ -110,7 +122,7 @@ Check if the user purchased an item
 
 To get all purchases, call ``queryPurchases``. Unlike most of the other functions, ``queryPurchases`` is
 a synchronous operation and returns a :ref:`Dictionary <class_Dictionary>` with a status code
-and either an array of purchases or an error message.
+and either an array of purchases or an error message. Only active subscriptions and non-consumed one-time purchases are returned.
 
 Full example:
 
@@ -121,7 +133,7 @@ Full example:
         for purchase in query.purchases:
             if purchase.sku == "my_iap_item":
                 premium = true # Entitle the user to the content they bought
-                if !purchase.is_acknowledged:
+                if !purchase.is_acknowledged and purchase.purchase_state==1:
                     payment.acknowledgePurchase(purchase.purchase_token)
 
 
@@ -139,7 +151,7 @@ acknowledges a purchase.
     if query.status == OK:
         for purchase in query.purchases:
             if purchase.sku == "my_consumable_iap_item":
-                if !purchase.is_acknowledged:
+                if !purchase.is_acknowledged and purchase.purchase_state==1:
                     payment.consumePurchase(purchase.purchase_token)
                     # Check the _on_purchase_consumed callback and give the user what they bought
 
